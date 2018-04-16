@@ -9,7 +9,7 @@ char* ReadCommand(int count, int* size)
 	char* command = malloc(sizeof(char) * MAX_COMMAND_SIZE);
 
 	// Prompt
-	printf("$> ", count);
+	printf("%d $> ", count);
 
 	// Read user command
 
