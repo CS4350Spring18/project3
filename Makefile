@@ -16,4 +16,4 @@ $(objects): %.o: %.c
 
 .PHONY: clean
 clean:
-	rm -f $(project) $(objects) *.out *.log *.txt
+	rm -f $(project) $(objects)
