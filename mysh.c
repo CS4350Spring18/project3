@@ -28,6 +28,10 @@ int main(int argc, char **argv){
          return EXIT_SUCCESS;
       }
 
+	// Remove new line
+	if(commandBuffer[commandlength-1] == '\n')
+		commandBuffer[i] = '\0';
+
       myArgv = (char**)malloc(sizeof(char*) * (commandLength));
       redirects = (char**)malloc(sizeof(char*) * (commandLength));
       myArgv[0] = strtok(commandBuffer, " ");
