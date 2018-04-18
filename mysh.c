@@ -24,9 +24,13 @@ int main(int argc, char **argv){
    while( getline(&commandBuffer, &commandLength, stdin) != -1) {
       myArgc = 0;
       pipedArgc = 0;
-      if(commandLength == 4 && strncmp(commandBuffer, "exit", (size_t) 4) == 0){
+      printf("%s %zu\n", commandBuffer, commandLength);
+      if(commandLength == 8 && strncmp(commandBuffer, "exit", (size_t) 4) == 0){
+         printf("Hitting exit");
          return EXIT_SUCCESS;
       }
+
+      if (strncmp(commandBuffer, "myls", (size_t) 4) == 0) myls(NULL);
 
 	// Remove new line
 	if(commandBuffer[commandLength - 1] == '\n')
