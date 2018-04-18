@@ -9,7 +9,7 @@ int main(int argc, char **argv){
    if(argc > 1){
       printf("This command does not take arguments or options\n");
    }
-   
+
    char *commandBuffer;
    size_t commandLength = 0;   
    char **myArgv;
@@ -19,7 +19,7 @@ int main(int argc, char **argv){
    char **pipedArgv;
    char **pipedRedirects;
    int pipedArgc = 0;   
-   
+
    printf("mysh$> ");
    while( getline(&commandBuffer, &commandLength, stdin) != -1) {
       myArgc = 0;
@@ -29,8 +29,8 @@ int main(int argc, char **argv){
       }
 
 	// Remove new line
-	if(commandBuffer[commandlength-1] == '\n')
-		commandBuffer[i] = '\0';
+	if(commandBuffer[commandLength - 1] == '\n')
+		commandBuffer[commandLength - 1] = '\0';
 
       myArgv = (char**)malloc(sizeof(char*) * (commandLength));
       redirects = (char**)malloc(sizeof(char*) * (commandLength));

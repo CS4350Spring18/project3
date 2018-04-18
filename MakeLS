@@ -1,10 +1,12 @@
-project=mysh
-objects=mysh.o mycd.o myls.o
+project=lsmain
+objects=lsmain.o myls.o
 cc=gcc
 cflags=-Wall -std=c99 -g -pedantic
+path=TestPath
 
 exec: $(project)
-	./$< $(file)
+	./$<
+	./$< $(..)
 
 all: $(objects)
 
