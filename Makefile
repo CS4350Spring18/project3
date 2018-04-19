@@ -9,7 +9,8 @@ exec: $(project)
 all: $(objects)
 
 $(project): $(objects)
-	$(cc) -o $(project) $(objects) $(links)
+	$(cc) -o $(project) mysh.o mycd.o $(links)
+	$(cc) -o myls myls.o
 
 $(objects): %.o: %.c
 	$(cc) -c $(cflags) $< -o $@

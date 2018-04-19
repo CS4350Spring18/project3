@@ -1,4 +1,30 @@
-#include "myls.h"
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <pwd.h>
+#include <grp.h>
+#include <stdbool.h>
+
+void myls(char *pathname);
+
+void printLastMod(time_t val);
+
+void printPermission(struct stat* fs);
+
+
+int main(int argc, char* argv[]) {
+   printf("hit myls %d %s\n", argc, argv[1]);
+   myls(NULL);
+   printf("%d ", argc);
+   for (int i = 0; i < argc - 1; i++)
+      printf("%s", argv[i]);
+   exit(EXIT_SUCCESS);
+}
+
 
 void myls(char* pathname) {
    int buffSize = 1024;
@@ -20,18 +46,60 @@ void myls(char* pathname) {
 
 
    // Read the path
-   DIR *dir;
+   DIR * dir = opendir(tgt_dir);
+   char * filename;
    struct dirent *dp;
-   char * file_name;
-   dir = opendir(tgt_dir);
-   while ((dp=readdir(dir)) != NULL) {
-      printf("debug: %s\n", dp->d_name);
-      if ( !strcmp(dp->d_name, ".") || !strcmp(dp->d_name, "..") )    {
-         // do nothing (straight logic)
-      } else {
-         file_name = dp->d_name; // use it
-         printf("file_name: \"%s\"\n",file_name);
+   struct stat fs;
+
+   // TODO: print the total number of files in dir
+   while ((dp=readdir(dir))) {
+      filename = dp->d_name;
+      // Show/not show directory path
+      if (!strcmp(filename, ".") || !strcmp(filename, "..")) continue;
+      // Print ls data
+      if (stat(filename, &fs)) perror(filename);
+      else {
+         // Permissions
+         printPermission(&fs);
+
+         // # of hard links
+         printf(" %3d", fs.st_nlink);
+
+         // Owner name
+         printf(" %s", getpwuid(fs.st_uid)->pw_name);
+
+         // Owner group
+         printf("  %s", getgrgid(fs.st_gid)->gr_name);
+
+         // file size
+         printf(" %8lld", fs.st_size);
+
+         // last modified
+         printLastMod(fs.st_mtime);
+
+         //filename
+         printf(" %s\n", filename);
       }
    }
    closedir(dir);
+}
+
+void printLastMod(time_t val) {
+   char lastMod[80];
+   struct tm *info = localtime(&val); /* convert to struct tm */
+   strftime(lastMod, 80, "%b %d %H:%M", info);
+   printf(" %s", lastMod);
+}
+
+void printPermission(struct stat* fs) {
+   printf( (S_ISDIR(fs->st_mode)) ? "d" : "-");
+   printf( (fs->st_mode & S_IRUSR) ? "r" : "-");
+   printf( (fs->st_mode & S_IWUSR) ? "w" : "-");
+   printf( (fs->st_mode & S_IXUSR) ? "x" : "-");
+   printf( (fs->st_mode & S_IRGRP) ? "r" : "-");
+   printf( (fs->st_mode & S_IWGRP) ? "w" : "-");
+   printf( (fs->st_mode & S_IXGRP) ? "x" : "-");
+   printf( (fs->st_mode & S_IROTH) ? "r" : "-");
+   printf( (fs->st_mode & S_IWOTH) ? "w" : "-");
+   printf( (fs->st_mode & S_IXOTH) ? "x" : "-");
 }
