@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <getopt.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/types.h>
 
 int processRunner();
 
@@ -30,15 +33,11 @@ int main(int argc, char **argv){
          return EXIT_SUCCESS;
       }
 
-      if (strncmp(commandBuffer, "myls", (size_t) 4) == 0) {
-         if (processRunner() == -1) printf("Error");
-      }
-
 	// Remove new line
 	if(commandBuffer[commandLength - 1] == '\n')
 		commandBuffer[commandLength - 1] = '\0';
 
-      myArgv = (char**)malloc(sizeof(char*) * (commandLength));
+      /*myArgv = (char**)malloc(sizeof(char*) * (commandLength));
       redirects = (char**)malloc(sizeof(char*) * (commandLength));
       myArgv[0] = strtok(commandBuffer, " ");
       myArgc++;
@@ -74,6 +73,18 @@ int main(int argc, char **argv){
          }
       }
       myArgc = temp;
+      */
+
+      if (strncmp(commandBuffer, "myls", (size_t) 4) == 0) {
+         //printf("cmd buffer: %s", commandBuffer);
+         char * command = (char *) malloc(strlen(commandBuffer) * sizeof(char));
+         printf("**runner**\n");
+         strcat(command, "./");
+         strcat(command, commandBuffer);
+         printf("%s\n", command);
+         if (processRunner(command) == -1) printf("Error");
+         free(command);
+      }
 
       //TODO:Make a child process and run parsed command with redirections
 /*
@@ -93,13 +104,13 @@ int main(int argc, char **argv){
 
 }
 
-int processRunner() {
+int processRunner(const char *command) {
+   if (command == NULL) return -1;
    pid_t pid;
    int status;
    int ret;
    if ((pid=fork())==0) {
-      char command[500];
-      execl("/bin/bash", "bash", "-c", "./myls", NULL);
+      execlp("/bin/bash", "bash", "-c", command, NULL);
       ret = -1;
    } else if (pid>0) {
       wait(&status);

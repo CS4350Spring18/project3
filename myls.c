@@ -17,11 +17,7 @@ void printPermission(struct stat* fs);
 
 
 int main(int argc, char* argv[]) {
-   printf("hit myls %d %s\n", argc, argv[1]);
    myls(NULL);
-   printf("%d ", argc);
-   for (int i = 0; i < argc - 1; i++)
-      printf("%s", argv[i]);
    exit(EXIT_SUCCESS);
 }
 
