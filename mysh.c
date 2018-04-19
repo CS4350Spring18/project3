@@ -98,9 +98,7 @@ int processRunner() {
    int status;
    int ret;
    if ((pid=fork())==0) {
-      //printf("command buffer: %s\n", commandBuffer);
       char command[500];
-      //strcpy(command, commandBuffer);
       execl("/bin/bash", "bash", "-c", "./myls", NULL);
       ret = -1;
    } else if (pid>0) {
@@ -109,4 +107,5 @@ int processRunner() {
    } else {
       ret = -1;
    }
+   return ret;
 }

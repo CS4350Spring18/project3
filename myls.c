@@ -59,28 +59,22 @@ void myls(char* pathname) {
       // Print ls data
       if (stat(filename, &fs)) perror(filename);
       else {
-         // Permissions
-         printPermission(&fs);
-
-         // # of hard links
-         printf(" %3d", fs.st_nlink);
-
-         // Owner name
-         printf(" %s", getpwuid(fs.st_uid)->pw_name);
-
-         // Owner group
-         printf("  %s", getgrgid(fs.st_gid)->gr_name);
-
-         // file size
-         printf(" %8lld", fs.st_size);
-
-         // last modified
-         printLastMod(fs.st_mtime);
-
-         //filename
-         printf(" %s\n", filename);
+         // handle directory pathing
+         if (false) printf(" %s", filename); //filename
+         // handle hidden files
+         else if (filename[0] == '.' && true) continue;
+         else {
+            printPermission(&fs); // Permissions
+            printf(" %3d", fs.st_nlink); // # of hard links
+            printf(" %s", getpwuid(fs.st_uid)->pw_name); // Owner name
+            printf("  %s", getgrgid(fs.st_gid)->gr_name); // Owner group
+            printf(" %8lld", fs.st_size); // file size
+            printLastMod(fs.st_mtime); // last modified
+            printf(" %s\n", filename); //filename
+         }
       }
    }
+   if (false) printf("\n");
    closedir(dir);
 }
 
