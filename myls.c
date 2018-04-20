@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,6 +10,7 @@
 #include <grp.h>
 #include <stdbool.h>
 #include <getopt.h>
+#include <linux/limits.h>
 
 
 void myls(const char *pathname, char mode, char viewMode);
@@ -55,71 +57,86 @@ int main(int argc, char* argv[]) {
 
 
 void myls(const char* pathname, char mode, char viewMode) {
-   int buffSize = 1024;
-   char tgt_dir[buffSize];
-   // TODO: implement relative path handling
-
-   // Check that the path is not a file
+   char tgt_path[PATH_MAX];
 
    // Get the path we will read
-   if (pathname) strcpy(tgt_dir, pathname);
+   if (pathname) realpath(pathname, tgt_path);
    else {
       // Get the cwd if no path is provided.
-      if (getcwd(tgt_dir, buffSize) == NULL) {
+      if (getcwd(tgt_path, PATH_MAX) == NULL) {
          perror("getcwd() error");
          return;
       }
    }
 
-   // Check read permission for the path
+   // Check that the path exists
+   if (!access(tgt_path, F_OK) == 0) {
+      fprintf(stderr, "%s is not a valid pathname.\n", tgt_path);
+      exit(EXIT_FAILURE);
+   }
 
+   // Check read permission for the path
+   if (!access(tgt_path, R_OK) == 0) {
+      fprintf(stderr, "%s is not readable (access denied)\n", tgt_path);
+      exit(EXIT_FAILURE);
+   }
 
    // Read the path
-   DIR * dir = opendir(tgt_dir);
+   DIR * dir = opendir(tgt_path);
    char * filename;
    bool firstPrint = true;
    struct dirent *dp;
    struct stat fs;
 
-   // TODO: print the total number of files in dir
-   while ((dp=readdir(dir))) {
-      filename = dp->d_name;
-      // Print ls data
-      if (stat(filename, &fs)) perror(filename);
-      else {
-         // handle hidden files
-         if (filename[0] == '.' && viewMode == 'l') continue;
-         if (!strcmp(filename, ".") && viewMode == 'l') continue;
-         if (!strcmp(filename, "..") && viewMode == 'l') continue;
+   // Check if the path is a file
+   if ((stat(tgt_path, &fs) == 0) && S_ISREG(fs.st_mode)) {
+      listPrint(&fs, tgt_path);
+   } else {
+      // TODO: print the total number of system blocks
+      // printf("total \n");
+      while ((dp=readdir(dir))) {
+         filename = dp->d_name;
+         char* filepath;
+         if (0 > asprintf(&filepath, "%s/%s", tgt_path, filename)) perror(filename);
 
-         // handle directory pathing
-         if (mode == 'r') {
-            if (firstPrint) {
-               printf("%s", filename); //filename
-               firstPrint = false;
-            } else printf("%10s", filename);
-         } else listPrint(&fs, filename);
+         // Print ls data
+         if (stat(filepath, &fs)) perror(filename);
+         else {
+            // handle hidden files
+            if (filename[0] == '.' && viewMode == 'l') continue;
+            if (!strcmp(filename, ".") && viewMode == 'l') continue;
+            if (!strcmp(filename, "..") && viewMode == 'l') continue;
+
+            // handle print mode
+            if (mode == 'r') {
+               if (firstPrint) {
+                  printf("%s", filename);
+                  firstPrint = false;
+               } else printf("%10s", filename);
+            } else listPrint(&fs, filename);
+         }
+         free(filepath);
       }
+      if (mode == 'r') printf("\n");
    }
-   if (mode == 'r') printf("\n");
    closedir(dir);
 }
 
 void printLastMod(const time_t val) {
    char lastMod[80];
-   struct tm *info = localtime(&val); /* convert to struct tm */
+   struct tm *info = localtime(&val);  // convert to struct tm
    strftime(lastMod, 80, "%b %d %H:%M", info);
    printf(" %s", lastMod);
 }
 
 void listPrint(const struct stat* fs, const char* filename) {
-   printPermission(fs); // Permissions
-   printf(" %3d", fs->st_nlink); // # of hard links
-   printf(" %s", getpwuid(fs->st_uid)->pw_name); // Owner name
-   printf("  %s", getgrgid(fs->st_gid)->gr_name); // Owner group
-   printf(" %8lld", fs->st_size); // file size
-   printLastMod(fs->st_mtime); // last modified
-   printf(" %s\n", filename); //filename
+   printPermission(fs);                            // Permissions
+   printf(" %3d", fs->st_nlink);                   // # of hard links
+   printf(" %s", getpwuid(fs->st_uid)->pw_name);   // Owner name
+   printf("  %s", getgrgid(fs->st_gid)->gr_name);  // Owner group
+   printf(" %8lld", fs->st_size);                  // file size
+   printLastMod(fs->st_mtime);                     // last modified
+   printf(" %s\n", filename);                      // filename
 }
 
 void printPermission(const struct stat* fs) {
