@@ -8,23 +8,56 @@
 #include <pwd.h>
 #include <grp.h>
 #include <stdbool.h>
+#include <getopt.h>
 
-void myls(char *pathname);
 
-void printLastMod(time_t val);
+void myls(const char *pathname, char mode, char viewMode);
 
-void printPermission(struct stat* fs);
+void printLastMod(const time_t val);
+
+void listPrint(const struct stat* fs, const char* filename);
+
+void printPermission(const struct stat* fs);
+
+struct option longopts[] = {
+   { 0, 0, 0, 0 },
+};
 
 
 int main(int argc, char* argv[]) {
-   myls(NULL);
+   int c;
+   int lopt=false,
+       aopt=false;
+   while ((c = getopt_long(argc, argv, ":al", longopts, NULL)) != -1) {
+      switch (c) {
+         case 'a':
+            aopt = true;
+            break;
+         case 'l':
+            lopt = true;
+            break;
+         case '?': default:
+            break;
+      }
+   }
+
+   // Determine the path
+   const char* pathname = (optind == argc) ? NULL:argv[optind++];
+
+   // Run myls with flags
+   myls(
+      pathname,            // path to print. defaults to '.'
+      (lopt) ? 'l':'r',    // toggle list mode
+      (aopt) ? 'a':'l'     // toggle all or limited viewMode
+   );
    exit(EXIT_SUCCESS);
 }
 
 
-void myls(char* pathname) {
+void myls(const char* pathname, char mode, char viewMode) {
    int buffSize = 1024;
    char tgt_dir[buffSize];
+   // TODO: implement relative path handling
 
    // Check that the path is not a file
 
@@ -44,44 +77,52 @@ void myls(char* pathname) {
    // Read the path
    DIR * dir = opendir(tgt_dir);
    char * filename;
+   bool firstPrint = true;
    struct dirent *dp;
    struct stat fs;
 
    // TODO: print the total number of files in dir
    while ((dp=readdir(dir))) {
       filename = dp->d_name;
-      // Show/not show directory path
-      if (!strcmp(filename, ".") || !strcmp(filename, "..")) continue;
       // Print ls data
       if (stat(filename, &fs)) perror(filename);
       else {
-         // handle directory pathing
-         if (false) printf(" %s", filename); //filename
          // handle hidden files
-         else if (filename[0] == '.' && true) continue;
-         else {
-            printPermission(&fs); // Permissions
-            printf(" %3d", fs.st_nlink); // # of hard links
-            printf(" %s", getpwuid(fs.st_uid)->pw_name); // Owner name
-            printf("  %s", getgrgid(fs.st_gid)->gr_name); // Owner group
-            printf(" %8lld", fs.st_size); // file size
-            printLastMod(fs.st_mtime); // last modified
-            printf(" %s\n", filename); //filename
-         }
+         if (filename[0] == '.' && viewMode == 'l') continue;
+         if (!strcmp(filename, ".") && viewMode == 'l') continue;
+         if (!strcmp(filename, "..") && viewMode == 'l') continue;
+
+         // handle directory pathing
+         if (mode == 'r') {
+            if (firstPrint) {
+               printf("%s", filename); //filename
+               firstPrint = false;
+            } else printf("%10s", filename);
+         } else listPrint(&fs, filename);
       }
    }
-   if (false) printf("\n");
+   if (mode == 'r') printf("\n");
    closedir(dir);
 }
 
-void printLastMod(time_t val) {
+void printLastMod(const time_t val) {
    char lastMod[80];
    struct tm *info = localtime(&val); /* convert to struct tm */
    strftime(lastMod, 80, "%b %d %H:%M", info);
    printf(" %s", lastMod);
 }
 
-void printPermission(struct stat* fs) {
+void listPrint(const struct stat* fs, const char* filename) {
+   printPermission(fs); // Permissions
+   printf(" %3d", fs->st_nlink); // # of hard links
+   printf(" %s", getpwuid(fs->st_uid)->pw_name); // Owner name
+   printf("  %s", getgrgid(fs->st_gid)->gr_name); // Owner group
+   printf(" %8lld", fs->st_size); // file size
+   printLastMod(fs->st_mtime); // last modified
+   printf(" %s\n", filename); //filename
+}
+
+void printPermission(const struct stat* fs) {
    printf( (S_ISDIR(fs->st_mode)) ? "d" : "-");
    printf( (fs->st_mode & S_IRUSR) ? "r" : "-");
    printf( (fs->st_mode & S_IWUSR) ? "w" : "-");
