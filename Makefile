@@ -1,5 +1,5 @@
 project=mysh
-objects=mysh.o mycd.o pwd.o
+objects=mysh.o mycd.o mypwd.o
 cc=gcc
 cflags=-Wall -std=c99 -g -pedantic
 
