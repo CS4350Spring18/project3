@@ -26,6 +26,7 @@ int main(int argc, char** argv){
    int ropt=false;
    int srcf;
 
+   //determines if -R or -r argument is provided (Rescursive)
    while((c = getopt_long(argc, argv, ":Rr", longopts, NULL)) != -1){
       switch (c) {
          case 'R': case 'r':
@@ -38,7 +39,7 @@ int main(int argc, char** argv){
 
    struct stat buf;
 
-   if(ropt){
+   if(ropt){ //decides if how which argument to open
       stat(argv[2],&buf);
    }
    else{
@@ -50,13 +51,15 @@ int main(int argc, char** argv){
          char *oldName;
          char newName[300];
          
+         //copies arguments to be used as paths
          strcat(oldName, argv[2]);
          strcat(newName, argv[3]);
 
+         //creates inital directory before function
          mkdir(argv[3], 0777);
          chdir(argv[3]);
          getcwd(newName, 299);
-         chdir("..");
+         chdir("..");//returns to parent
          SearchDirectory(oldName, newName);
       }
       else{
@@ -64,24 +67,25 @@ int main(int argc, char** argv){
       }
    }
    else{
-      if (ropt){
-         srcf = open(argv[2], O_RDONLY);
+      if (ropt){ //opens file if argument provided
+         srcf = open(argv[2], O_RDONLY); 
       }
-      else{
+      else{ //opens file if no argument provided
          srcf = open(argv[1], O_RDONLY);
       }  
-      if(srcf == -1){
+      if(srcf == -1){ //errors if no parameters
          printf("Error opening file: %s \n", argv[1]);
          return EXIT_FAILURE;
       }
 
-      int destf = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC);      
+      //opens file to write to and errors if does not open
+      int destf = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC); 
       if(destf == -1){
          printf("Error opening file: %s \n", argv[2]);
          return EXIT_FAILURE;
       }
 
-      char buf1[1];
+      char buf1[1]; //reads and writes
       while(eof(srcf) != true){
          read(srcf, buf1, sizeof(char));
          write(destf, buf1, sizeof(char));
@@ -93,6 +97,8 @@ int main(int argc, char** argv){
    return EXIT_SUCCESS;
 }
 
+/* end of file                 */
+/* reads until end of file    */
 bool eof(int fd){
 
    off_t currentOff = lseek(fd, 0, SEEK_CUR);
@@ -101,48 +107,60 @@ bool eof(int fd){
 
    return isEof;
 }
-
+/* Search The Directory   */
+/* Takes a current path and a new path
+ * newName - New path that files and directories will be created
+ * name - Old path that files are copied from  */
 void SearchDirectory(const char *name, const char *newName) {
     char tempName[PATH_MAX];
-
-    printf("runs search: \n");
 
     realpath(name, tempName);
     DIR *dir = opendir(tempName);
     
     if(dir) {
-        char Path[256], *EndPtr = Path;
+        char Path[256], *EndPtr = Path; //pointer path
         struct dirent *iter;
         strcpy(tempName, "/");
         strcpy(Path, tempName);
         EndPtr += strlen(tempName);
 
-        printf("%s FIRST  \n", Path);
 
         while((iter = readdir(dir)) != NULL) { //reads dir into iterator
             struct stat info;
             
-            printf("%s SECOND \n", Path);
             strcpy(EndPtr, iter->d_name);
 
+            //does not path through . or .. dir
             if (!strcmp(EndPtr, ".")) continue;
             if (!strcmp(EndPtr, "..")) continue;
 
-
+            //retrieved from a file relative to the dir w/ file descriptor instead of the current working dir
             if (fstatat(dirfd(dir), iter->d_name, &info, 0) < 0)
             {
                   perror(iter->d_name);
                   continue;
             }
 
-            if (S_ISDIR(info.st_mode)){
-                  chdir (newName);
-                  strcat(newName, Path);
-                  mkdir(newName, 0777);
-                  chdir (Path);
+            if (S_ISDIR(info.st_mode)){ //if directory
+                  chdir (newName); //change to new directory
+                  strcat(newName, Path); //copies the name of the new directory to the new path
+                  mkdir(newName, 0777); //makes the directory
+                  chdir (Path); //changes back to directory
                   SearchDirectory(Path, newName);   //iterates down dir
             } 
-            else if(S_ISREG(info.st_mode)) { 
+            else if(S_ISREG(info.st_mode)) { //if regular file
+               strcat(newName, Path); //copies file name ontop of new path
+               int srcf = open(Path, O_RDONLY); //opens file in current dir
+               int destf = open(newName, O_WRONLY | O_CREAT | O_TRUNC); //writes in new dir
+
+               char buf1[1];
+               while(eof(srcf) != true){ //reads and writes
+                  read(srcf, buf1, sizeof(char));
+                  write(destf, buf1, sizeof(char));
+               }
+
+               close(srcf);
+               close(destf);
             }
         }
     }
