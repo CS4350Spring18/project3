@@ -53,7 +53,10 @@ int main(int argc, char** argv){
          strcat(oldName, argv[2]);
          strcat(newName, argv[3]);
 
-         mkdir(argv[3], 0777); 
+         mkdir(argv[3], 0777);
+         chdir(argv[3]);
+         getcwd(newName, 299);
+         chdir("..");
          SearchDirectory(oldName, newName);
       }
       else{
@@ -102,29 +105,44 @@ bool eof(int fd){
 void SearchDirectory(const char *name, const char *newName) {
     char tempName[PATH_MAX];
 
+    printf("runs search: \n");
+
     realpath(name, tempName);
     DIR *dir = opendir(tempName);
     
     if(dir) {
         char Path[256], *EndPtr = Path;
         struct dirent *iter;
+        strcpy(tempName, "/");
         strcpy(Path, tempName);
         EndPtr += strlen(tempName);
 
-        while((iter = readdir(dir))) { //reads dir into iterator
+        printf("%s FIRST  \n", Path);
+
+        while((iter = readdir(dir)) != NULL) { //reads dir into iterator
             struct stat info;
+            
+            printf("%s SECOND \n", Path);
             strcpy(EndPtr, iter->d_name);
 
-            if(!stat(Path, &info)) {
-               printf("ss");
-                if(S_ISDIR(info.st_mode)) { //S_ISDIR checks if directory
-                    printf("ranISDIR");
-                    SearchDirectory(Path, newName);   //iterates down dir
-                    //todo
-                } 
-                else if(S_ISREG(info.st_mode)) { 
-                   //todo
-                }
+            if (!strcmp(EndPtr, ".")) continue;
+            if (!strcmp(EndPtr, "..")) continue;
+
+
+            if (fstatat(dirfd(dir), iter->d_name, &info, 0) < 0)
+            {
+                  perror(iter->d_name);
+                  continue;
+            }
+
+            if (S_ISDIR(info.st_mode)){
+                  chdir (newName);
+                  strcat(newName, Path);
+                  mkdir(newName, 0777);
+                  chdir (Path);
+                  SearchDirectory(Path, newName);   //iterates down dir
+            } 
+            else if(S_ISREG(info.st_mode)) { 
             }
         }
     }
