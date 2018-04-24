@@ -15,6 +15,8 @@
 
 bool eof(int fd);
 
+void SearchDirectory(const char *name, const char *newName);
+
 struct option longopts[] = {
    { 0, 0, 0, 0 },
 };
@@ -45,13 +47,16 @@ int main(int argc, char** argv){
 
    if(S_ISDIR(buf.st_mode)){
       if(ropt){
-         DIR *dir = opendir(argv[2]);
-         mkdir(argv[3], 0777);
-         DIR *newdir = opendir(argv[3]);
-         SearchDirectory(dir, newdir);
+         char *oldName;
+         char newName[300];
+         
+         strcat(oldName, argv[2]);
+         strcat(newName, argv[3]);
+
+         mkdir(argv[3], 0777); 
+         SearchDirectory(oldName, newName);
       }
       else{
-         printf("ran\n");
          mkdir(argv[2], 0777);
       }
    }
@@ -95,32 +100,30 @@ bool eof(int fd){
 }
 
 void SearchDirectory(const char *name, const char *newName) {
-    const char *tempName;
-    DIR *dir = opendir(name);
-   
+    char tempName[PATH_MAX];
+
+    realpath(name, tempName);
+    DIR *dir = opendir(tempName);
+    
     if(dir) {
         char Path[256], *EndPtr = Path;
         struct dirent *iter;
+        strcpy(Path, tempName);
+        EndPtr += strlen(tempName);
 
-        strcpy(Path, name);
-        EndPtr += strlen(name);
-
-        while((iter = readdir(dir)) != NULL) { //reads dir into iterator
+        while((iter = readdir(dir))) { //reads dir into iterator
             struct stat info;
             strcpy(EndPtr, iter->d_name);
+
             if(!stat(Path, &info)) {
+               printf("ss");
                 if(S_ISDIR(info.st_mode)) { //S_ISDIR checks if directory
-                    char *get_current_dir_name(tempName);
-                    strcat(newName, "/");
-                    strcat(newName, tempName);
-       
-                    int link(name, newName);
+                    printf("ranISDIR");
                     SearchDirectory(Path, newName);   //iterates down dir
+                    //todo
                 } 
                 else if(S_ISREG(info.st_mode)) { 
-                     strcat(newName, "/");
-                     strcat(newName, name);
-                     int link(name, newName);
+                   //todo
                 }
             }
         }
