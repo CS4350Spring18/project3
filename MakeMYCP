@@ -1,0 +1,20 @@
+project=mycp
+objects=mycp.o
+file=foo.txt fooCp.txt
+cc=gcc
+cflags=-Wall -std=c99 -g -pedantic
+
+exec: $(project)
+	./$< -r $(file)
+
+all: $(objects)
+
+$(project): $(objects)
+	$(cc) -o $(project) $(objects)
+
+$(objects): %.o: %.c
+	$(cc) -c $(cflags) $< -o $@
+
+.PHONY: clean
+clean:
+	rm -f $(project) $(objects) *.out *.log *.txt
