@@ -30,6 +30,7 @@ int main(int argc, char* argv[]) {
    exit(EXIT_SUCCESS);
 }
 
+
 void myls(const char* pathname, char mode, char viewMode) {
    char tgt_path[PATH_MAX];
 
@@ -99,12 +100,14 @@ void myls(const char* pathname, char mode, char viewMode) {
    closedir(dir);
 }
 
+
 void printLastMod(const time_t val) {
    char lastMod[80];
    struct tm *info = localtime(&val);  // convert to struct tm
    strftime(lastMod, 80, "%b %d %H:%M", info);
    printf(" %s", lastMod);
 }
+
 
 void listPrint(const struct stat* fs, const char* filename) {
    printPermission(fs);                            // Permissions
@@ -115,6 +118,7 @@ void listPrint(const struct stat* fs, const char* filename) {
    printLastMod(fs->st_mtime);                     // last modified
    printf(" %s\n", filename);                      // filename
 }
+
 
 void printPermission(const struct stat* fs) {
    printf( (S_ISDIR(fs->st_mode)) ? "d" : "-");

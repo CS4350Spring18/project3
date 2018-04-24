@@ -19,12 +19,10 @@ void insert(Node **headPtr, char *new_data, size_t data_size);
 void printList(Node *node, void (*fptr)(void *));
 
 /* Traverse all the nodes. Frees both data and
- * the node.
- */
+ * the node. */
 void freeNodes(Node *node);
 
 /* Traverse all the nodes. Frees both data and
- * the node.
- */
+ * the node. */
 void printLine(void *s);
 
