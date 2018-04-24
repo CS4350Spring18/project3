@@ -1,5 +1,6 @@
 project=myls
-objects=myls.o
+exe=myls mylsll
+objects=myls.o mylsll.o
 cc=gcc
 cflags=-Wall -std=c99 -g -pedantic
 
@@ -16,4 +17,4 @@ $(objects): %.o: %.c
 
 .PHONY: clean
 clean:
-	rm -f $(project) $(objects) *.out *.log *.txt
+	rm -f $(exe) $(objects) *.out *.log *.txt

@@ -1,29 +1,4 @@
-#define _GNU_SOURCE
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <time.h>
-#include <pwd.h>
-#include <grp.h>
-#include <stdbool.h>
-#include <getopt.h>
-#include <linux/limits.h>
-
-
-void myls(const char *pathname, char mode, char viewMode);
-
-void printLastMod(const time_t val);
-
-void listPrint(const struct stat* fs, const char* filename);
-
-void printPermission(const struct stat* fs);
-
-struct option longopts[] = {
-   { 0, 0, 0, 0 },
-};
+#include "myls.h"
 
 
 int main(int argc, char* argv[]) {
@@ -54,7 +29,6 @@ int main(int argc, char* argv[]) {
    );
    exit(EXIT_SUCCESS);
 }
-
 
 void myls(const char* pathname, char mode, char viewMode) {
    char tgt_path[PATH_MAX];
@@ -94,11 +68,12 @@ void myls(const char* pathname, char mode, char viewMode) {
    } else {
       // TODO: print the total number of system blocks
       // printf("total \n");
+      Node *headPtr = NULL;
       while ((dp=readdir(dir))) {
          filename = dp->d_name;
          char* filepath;
          if (0 > asprintf(&filepath, "%s/%s", tgt_path, filename)) perror(filename);
-
+         insert(&headPtr, filepath, sizeof(char) * strlen(filepath));
          // Print ls data
          if (stat(filepath, &fs)) perror(filename);
          else {
@@ -118,6 +93,8 @@ void myls(const char* pathname, char mode, char viewMode) {
          free(filepath);
       }
       if (mode == 'r') printf("\n");
+      printf("**PRINTING NODES**");
+      printList(headPtr, printLine);
    }
    closedir(dir);
 }
