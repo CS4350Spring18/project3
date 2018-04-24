@@ -1,4 +1,4 @@
-#include "pwd.h"
+#include "mypwd.h"
 
 void pwd(){
    char cwd[250];
@@ -7,7 +7,7 @@ void pwd(){
 }
 
 // For testing independent of pwd
-int main(int argc, char **argv)
+//int main(int argc, char **argv)
 // {
 //    pwd();
 // }
