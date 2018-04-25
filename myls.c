@@ -62,14 +62,15 @@ void myls(const char* pathname, char mode, char viewMode) {
    bool firstPrint = true;
    struct dirent *dp;
    struct stat fs;
+   Node *headPtr = NULL;
 
    // Check if the path is a file
    if ((stat(tgt_path, &fs) == 0) && S_ISREG(fs.st_mode)) {
-      listPrint(&fs, tgt_path);
+      //listPrint(&fs, tgt_path);
+     insert(&headPtr, fs->d_name, sizeof(char) * strlen(fs->d_name)) 
    } else {
       // TODO: print the total number of system blocks
       // printf("total \n");
-      Node *headPtr = NULL;
       while ((dp=readdir(dir))) {
          filename = dp->d_name;
          char* filepath;

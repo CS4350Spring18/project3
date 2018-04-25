@@ -1,7 +1,7 @@
 #include "mylsll.h"
 
 
-void insert(Node **headPtr, char *new_data, size_t data_size) {
+void insert(Node **headPtr, char *data, size_t data_size) {
    if (new_data == NULL) return;
 
    // Allocate memory for the new node
