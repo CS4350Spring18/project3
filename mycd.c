@@ -1,9 +1,14 @@
 #include "mycd.h"
 
-void mycd(char *filename){
+void mycd(char *filename) {
    char cwd[250];
+   getcwd(cwd,sizeof(cwd));
+
    struct stat info;
-   lstat(filename, &info);
+   if ( lstat(filename, &info) != 0 ) {
+      printf("mycd: %s: No such file or directory\n", filename);
+      return;
+   }
 
    // check to see if it's a directory
    if(S_ISDIR(info.st_mode)) {
@@ -32,18 +37,24 @@ void mycd(char *filename){
       strcat(cwd,filename);
       chdir(cwd);
    }
+
+   getcwd(cwd,sizeof(cwd));
 }
 
 //For testing independent of mysh
-int main(int argc, char **argv)
+// int main(int argc, char **argv)
 // {
 //    char cwd[250];
 //    getcwd(cwd,sizeof(cwd));
-//    printf("cwd is %s\n", cwd);
+//    // printf("cwd is %s\n", cwd);
 
-//    // mycd("..");
+//    mycd("fake");
+//    mycd("..");
+//    mycd("other");
 //    mycd(argv[1]);
+//    mycd("mycd.c");
+//    mycd("fake");
 
 //    getcwd(cwd,sizeof(cwd));
-//    printf("cwd is %s\n", cwd);
+//    // printf("cwd is %s\n", cwd);
 // }
