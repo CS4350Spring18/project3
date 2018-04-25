@@ -129,6 +129,10 @@ int parseAndExec(char* commandBuffer, int commandLength){
       pwd();
       return EXIT_SUCCESS;
    }
+   if(strncmp(myArgv[0], "myls", 4) == 0) {
+      char arg[6] = "./myls";
+      strncpy(myArgv[0], arg, 6);
+   }
 
    int redirects[2];
    redirects[0] = inf;
