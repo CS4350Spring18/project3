@@ -48,7 +48,7 @@ int main(int argc, char** argv){
 
    if(S_ISDIR(buf.st_mode)){
       if(ropt){
-         char *oldName;
+         char oldName[300];
          char newName[300];
          
          //copies arguments to be used as paths
@@ -56,6 +56,9 @@ int main(int argc, char** argv){
          strcat(newName, argv[3]);
 
          //creates inital directory before function
+         chdir(argv[2]);
+         getcwd(oldName, 299);
+         chdir("..");
          mkdir(argv[3], 0777);
          chdir(argv[3]);
          getcwd(newName, 299);
@@ -112,6 +115,9 @@ bool eof(int fd){
  * newName - New path that files and directories will be created
  * name - Old path that files are copied from  */
 void SearchDirectory(const char *name, const char *newName) {
+   printf("%s OG *name: \n", name);
+   printf("%s OG *newname: \n", newName);
+   printf("Start Search:\n");
     char tempName[PATH_MAX];
 
     realpath(name, tempName);
@@ -142,22 +148,39 @@ void SearchDirectory(const char *name, const char *newName) {
             }
 
             if (S_ISDIR(info.st_mode)){ //if directory
+                  printf("%s Dir new dir \n", newName);
                   chdir (newName); //change to new directory
                   strcat(newName, Path); //copies the name of the new directory to the new path
+                  strcat(name, Path);
+
+                  printf("%s path with newdir \n", newName);
                   mkdir(newName, 0777); //makes the directory
-                  chdir (Path); //changes back to directory
-                  SearchDirectory(Path, newName);   //iterates down dir
+                  chdir (name); //changes back to directory
+
+                  printf("%s Dir orig path \n", Path);
+                  SearchDirectory(name, newName);   //iterates down dir
             } 
             else if(S_ISREG(info.st_mode)) { //if regular file
-               strcat(newName, Path); //copies file name ontop of new path
-               int srcf = open(Path, O_RDONLY); //opens file in current dir
-               int destf = open(newName, O_WRONLY | O_CREAT | O_TRUNC); //writes in new dir
-
-               char buf1[1];
-               while(eof(srcf) != true){ //reads and writes
+               char tempPath[256];
+               char origPath[256];
+               strcat(origPath, name);
+               strcat(origPath, Path);
+               strcat(tempPath, newName);
+               strcat(tempPath, Path); //copies file name ontop of new path
+               printf("%s write from location \n", origPath);
+               printf("%s new file location \n", tempPath);
+               char buf1[256];
+               int srcf = open(origPath, O_RDONLY); //opens file in current dir
+               while(eof(srcf) != true){
                   read(srcf, buf1, sizeof(char));
+               }
+               chdir(newName);
+               int destf = open(tempPath, O_WRONLY | O_CREAT | O_TRUNC); //writes in new dir
+
+               while(eof(srcf) != true){ //reads and writes
                   write(destf, buf1, sizeof(char));
                }
+               chdir(name);
 
                close(srcf);
                close(destf);
