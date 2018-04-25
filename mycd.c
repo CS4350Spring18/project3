@@ -1,48 +1,35 @@
 #include "mycd.h"
 
-void mycd(char *filename){
+// Returns true if changed directory successfully, false if it did not.
+bool mycd(char *filename){
    char cwd[250];
-   struct stat info;
-   lstat(filename, &info);
-
-   // check to see if it's a directory
-   if(S_ISDIR(info.st_mode)) {
-      // if insufficient permissions
-      if( access(filename, X_OK) ) {
-         printf("mycd: %s: Permission denied.\n", filename);
-         return;
-      }
-   }
-   // not a directory
-   else {
-      if(S_ISREG(info.st_mode))
-         printf("mycd: %s: Not a directory\n", filename);
-      else
-         printf("mycd: %s: No such file or directory\n", filename);
-      return;
-   }
 
    // if the file is already an absolute path
    if(filename[0] == '/') {
-      chdir(filename);
+      if( chdir(filename) )
+         return true;
+      else
+         return false;
    }
    else {
       getcwd(cwd,sizeof(cwd));
       strcat(cwd,"/");
       strcat(cwd,filename);
-      chdir(cwd);
+      if( chdir(cwd) )
+         return true;
+      else
+         return false;
    }
 }
 
-//For testing independent of mysh
-int main(int argc, char **argv)
+// For testing independent of mysh
+// int main(int argc, char **argv)
 // {
 //    char cwd[250];
 //    getcwd(cwd,sizeof(cwd));
 //    printf("cwd is %s\n", cwd);
 
-//    // mycd("..");
-//    mycd(argv[1]);
+//    mycd("..");
 
 //    getcwd(cwd,sizeof(cwd));
 //    printf("cwd is %s\n", cwd);
