@@ -13,7 +13,7 @@ typedef struct Node {
 } Node;
 
 /* Insert the nodes in alphabetical order. */
-void insert(Node **headPtr, char *new_data, size_t data_size);
+void insert(Node **headPtr, char *data, size_t data_size);
 
 /* Print the list in-order.*/
 void printList(Node *node, void (*fptr)(void *));

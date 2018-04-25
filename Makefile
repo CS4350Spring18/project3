@@ -1,3 +1,5 @@
+.PHONY: exc clean
+
 exc:
 	make -f MakeMYLS
 	make -f MakeMYSH

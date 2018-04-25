@@ -56,51 +56,68 @@ void myls(const char* pathname, char mode, char viewMode) {
       exit(EXIT_FAILURE);
    }
 
-   // Read the path
-   DIR * dir = opendir(tgt_path);
-   char * filename;
-   bool firstPrint = true;
-   struct dirent *dp;
+   char *filename;
    struct stat fs;
    Node *headPtr = NULL;
 
    // Check if the path is a file
-   if ((stat(tgt_path, &fs) == 0) && S_ISREG(fs.st_mode)) {
-      //listPrint(&fs, tgt_path);
-     insert(&headPtr, fs->d_name, sizeof(char) * strlen(fs->d_name)) 
-   } else {
-      // TODO: print the total number of system blocks
-      // printf("total \n");
+   if ((stat(tgt_path, &fs) == 0) && S_ISREG(fs.st_mode))
+     insert(&headPtr, basename(tgt_path), sizeof(char) * strlen(tgt_path));
+   else {
+      // Read files from the path
+      DIR *dir = opendir(tgt_path);
+      struct dirent *dp;
+
       while ((dp=readdir(dir))) {
          filename = dp->d_name;
-         char* filepath;
-         if (0 > asprintf(&filepath, "%s/%s", tgt_path, filename)) perror(filename);
-         insert(&headPtr, filepath, sizeof(char) * strlen(filepath));
-         // Print ls data
-         if (stat(filepath, &fs)) perror(filename);
-         else {
-            // handle hidden files
-            if (filename[0] == '.' && viewMode == 'l') continue;
-            if (!strcmp(filename, ".") && viewMode == 'l') continue;
-            if (!strcmp(filename, "..") && viewMode == 'l') continue;
 
-            // handle print mode
-            if (mode == 'r') {
-               if (firstPrint) {
-                  printf("%s", filename);
-                  firstPrint = false;
-               } else printf("%10s", filename);
-            } else listPrint(&fs, filename);
-         }
-         free(filepath);
+         // if viewMode set to limited we don't want to include
+         // hidden files or ./..
+         if (filename[0] == '.' && viewMode == 'l') continue;
+         if (!strcmp(filename, ".") && viewMode == 'l') continue;
+         if (!strcmp(filename, "..") && viewMode == 'l') continue;
+         insert(&headPtr, filename, sizeof(char) * strlen(tgt_path));
       }
-      if (mode == 'r') printf("\n");
-      printf("**PRINTING NODES**");
-      printList(headPtr, printLine);
+      closedir(dir);
    }
-   closedir(dir);
+
+   // Print contents and release resources
+   printStatList(headPtr, tgt_path, mode);
+   freeNodes(headPtr);
 }
 
+
+void printStatList(Node *node, char* tgt_path, char mode) {
+   if (node == NULL) return;
+
+   char *filepath,
+        *filename;
+   bool firstPrint = true;
+   struct stat fs;
+
+   while (node != NULL) {
+      filename = node->data;
+      // Create the full path to the file or directory
+      if (0 > asprintf(&filepath, "%s/%s", tgt_path, filename)) {
+         perror(filename);
+         continue;
+      }
+      // Get stat information
+      if (stat(filepath, &fs)) perror(filename);
+      else {
+         // If mode is read print only the filename
+         if (mode == 'r') {
+            if (firstPrint) {
+               printf("%s", filename);
+               firstPrint = false;
+            } else printf("%10s", filename);
+         // If mode is list print all the details
+         } else listPrint(&fs, filename);
+      }
+      node = node->next;
+   }
+   if (mode == 'r') printf("\n");
+}
 
 void printLastMod(const time_t val) {
    char lastMod[80];

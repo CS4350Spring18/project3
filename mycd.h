@@ -2,5 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 
-bool mycd(char *filename);
+void mycd(char *filename);
+
