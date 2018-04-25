@@ -1,19 +1,9 @@
-project=mysh
-objects=mysh.o mycd.o mypwd.o
-cc=gcc
-cflags=-Wall -std=c99 -g -pedantic
+.PHONY: exc clean
 
-exec: $(project)
-	./$< $(file)
+exc:
+	make -f MakeMYLS
+	make -f MakeMYSH
 
-all: $(objects)
-
-$(project): $(objects)
-	$(cc) -o $(project) $(objects) $(links)
-
-$(objects): %.o: %.c
-	$(cc) -c $(cflags) $< -o $@
-
-.PHONY: clean
 clean:
-	rm -f $(project) $(objects) *.out *.log *.txt
+	make -f MakeMYLS clean
+	make -f MakeMYSH clean

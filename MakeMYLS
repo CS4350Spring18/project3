@@ -1,0 +1,20 @@
+project=myls
+exe=myls mylsll
+objects=myls.o mylsll.o
+cc=gcc
+cflags=-Wall -std=c99 -g -pedantic
+
+exec: $(project)
+	./$< $(file)
+
+all: $(objects)
+
+$(project): $(objects)
+	$(cc) -o $(project) $(objects)
+
+$(objects): %.o: %.c
+	$(cc) -c $(cflags) $< -o $@
+
+.PHONY: clean
+clean:
+	rm -f $(exe) $(objects) *.out *.log *.txt
