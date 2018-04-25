@@ -87,7 +87,7 @@ void myls(const char* pathname, char mode, char viewMode) {
 }
 
 
-void printStatList(Node *node, char* tgt_path, char mode) {
+void printStatList(const Node *node, char* tgt_path, char mode) {
    if (node == NULL) return;
 
    char *filepath,
