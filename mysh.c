@@ -16,6 +16,8 @@ int parseToken();
 
 int processRunner();
 
+char *prepCommand(char *command);
+
 int main(int argc, char **argv){
 
    if(argc > 1){
@@ -28,7 +30,7 @@ int main(int argc, char **argv){
    printf("mysh$> ");
 
    while( getline(&commandBuffer, &commandLength, stdin) != -1) {
-	// Remove new line
+      // Remove new line
       int k = 0;
       while(commandBuffer[k] != '\n')
          k++;
@@ -103,8 +105,9 @@ int parseAndExec(char* commandBuffer, int commandLength){
       }
       //Handle token as part of the piped command
       if(piped == 1){
-         parseToken(myArgv[i], myArgc, &(pipedArgv[pipedArgc]), &pipedArgc); 
-      } else { //Handle token as part of simple command 
+         parseToken(myArgv[i], myArgc, &(pipedArgv[pipedArgc]), &pipedArgc);
+      //Handle token as part of simple command
+      } else {
          parseToken(myArgv[i], myArgc, &(tempArgv[tempArgc]), &tempArgc);
       }
    }
@@ -120,29 +123,17 @@ int parseAndExec(char* commandBuffer, int commandLength){
       pwd();
       return EXIT_SUCCESS;
    }
-   if(strncmp(myArgv[0], "myls", 4) == 0) {
-      char arg[6] = "./myls";
-      strncpy(myArgv[0], arg, 6);
-   }
-   if(strncmp(myArgv[0], "mycp", 4) == 0) {
-      char arg[6] = "./mycp";
-      strncpy(myArgv[0], arg, 6);
-   }
-   if(strncmp(myArgv[0], "mycat", 5) == 0) {
-      char arg[7] = "./mycat";
-      strncpy(myArgv[0], arg, 7);
-   }
 
    int redirects[2];
    redirects[0] = inf;
    redirects[1] = outf;
-   int ret = processRunner(myArgv[0], myArgv, redirects);
+   int ret = processRunner(prepCommand(myArgv[0]), myArgv, redirects);
    if(ret != 0)
       printf("Error: Return status == %d\n", ret);
    if(piped == 1){
       redirects[0] = pinf;
       redirects[1] = poutf;
-      ret = processRunner(pipedArgv[0], pipedArgv, redirects);
+      ret = processRunner(prepCommand(pipedArgv[0]), pipedArgv, redirects);
       if(ret != 0)
          printf("Error: Return status == %d\n", ret);
    }
@@ -153,7 +144,6 @@ int parseAndExec(char* commandBuffer, int commandLength){
 int parseToken(char* srcToken, int srcCount, char** destToken, int* destCount){
 
    pid_t pid;
- 
    if(srcToken[0] == '$'){
       //Not implementing environment variales
 
@@ -218,3 +208,18 @@ int processRunner(const char* command, char** arguments, int* redirects){
 
 }
 
+char *prepCommand(char *command) {
+   if (strncmp(command, "myls", 4) == 0) {
+      char arg[6] = "./myls";
+      strncpy(command, arg, 6);
+   }
+   if(strncmp(command, "mycp", 4) == 0) {
+      char arg[6] = "./mycp";
+      strncpy(command, arg, 6);
+   }
+   if(strncmp(command, "mycat", 5) == 0) {
+      char arg[7] = "./mycat";
+      strncpy(command, arg, 7);
+   }
+   return command;
+}
