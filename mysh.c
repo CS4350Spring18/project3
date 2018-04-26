@@ -133,6 +133,10 @@ int parseAndExec(char* commandBuffer, int commandLength){
       char arg[6] = "./myls";
       strncpy(myArgv[0], arg, 6);
    }
+   if(strncmp(myArgv[0], "mycat", 5) == 0 {
+      char arg[7] = "./mycat";
+      strncpy(myArgv[0], arg, 7);
+   }
 
    int redirects[2];
    redirects[0] = inf;
