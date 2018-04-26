@@ -71,7 +71,7 @@ void myls(const char* pathname, char mode, char viewMode) {
       while ((dp=readdir(dir))) {
          filename = dp->d_name;
 
-         // if viewMode set to limited we don't want to include
+         // if viewMode is set to limited we don't want to include
          // hidden files or ./..
          if (filename[0] == '.' && viewMode == 'l') continue;
          if (!strcmp(filename, ".") && viewMode == 'l') continue;
@@ -129,10 +129,10 @@ void printLastMod(const time_t val) {
 
 void listPrint(const struct stat* fs, const char* filename) {
    printPermission(fs);                            // Permissions
-   printf(" %3d", fs->st_nlink);                   // # of hard links
+   printf(" %3lu", fs->st_nlink);                  // # of hard links
    printf(" %s", getpwuid(fs->st_uid)->pw_name);   // Owner name
    printf("  %s", getgrgid(fs->st_gid)->gr_name);  // Owner group
-   printf(" %8lld", fs->st_size);                  // file size
+   printf(" %8ld", fs->st_size);                   // file size
    printLastMod(fs->st_mtime);                     // last modified
    printf(" %s\n", filename);                      // filename
 }

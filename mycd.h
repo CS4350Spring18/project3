@@ -1,3 +1,7 @@
+#pragma once
+
+#define  _GNU_SOURCE
+
 #include <unistd.h>
 #include <stdbool.h>
 #include <stdio.h>

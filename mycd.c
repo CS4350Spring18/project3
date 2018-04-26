@@ -41,20 +41,3 @@ void mycd(char *filename) {
    getcwd(cwd,sizeof(cwd));
 }
 
-//For testing independent of mysh
-// int main(int argc, char **argv)
-// {
-//    char cwd[250];
-//    getcwd(cwd,sizeof(cwd));
-//    // printf("cwd is %s\n", cwd);
-
-//    mycd("fake");
-//    mycd("..");
-//    mycd("other");
-//    mycd(argv[1]);
-//    mycd("mycd.c");
-//    mycd("fake");
-
-//    getcwd(cwd,sizeof(cwd));
-//    // printf("cwd is %s\n", cwd);
-// }

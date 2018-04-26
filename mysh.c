@@ -21,9 +21,9 @@ int main(int argc, char **argv){
    if(argc > 1){
       printf("This command does not take arguments or options\n");
    }
-   
+
    char *commandBuffer;
-   size_t commandLength = 0;   
+   size_t commandLength = 0;
 
    printf("mysh$> ");
 
@@ -38,16 +38,11 @@ int main(int argc, char **argv){
       if(k >= 4 && strncmp(commandBuffer, "exit", 4) == 0){
          return EXIT_SUCCESS;
       }
-      
       parseAndExec(commandBuffer, k); 
 
-      //free(commandBuffer);
-    
       printf("mysh$> ");
    }
-
    return EXIT_FAILURE;
-
 }
 
 
@@ -85,7 +80,7 @@ int parseAndExec(char* commandBuffer, int commandLength){
       if(strlen(myArgv[i]) == 1 && strncmp(myArgv[i], "|", 1) == 0){
          piped = 1;
          pipedArgv = (char**)malloc( sizeof(char*) * (myArgc - i - 1) );
-         
+
          if(pipe(pp) < 0) {printf("Could not open pipe.\n"); return EXIT_FAILURE;}
          pinf = pp[0];
          outf = pp[1];
@@ -104,7 +99,6 @@ int parseAndExec(char* commandBuffer, int commandLength){
             if((temp = open(myArgv[i]+1, O_WRONLY|O_TRUNC|O_CREAT, 0666)))
                outf = temp;
          }
-   
          continue;
       }
       //Handle token as part of the piped command
@@ -113,11 +107,8 @@ int parseAndExec(char* commandBuffer, int commandLength){
       } else { //Handle token as part of simple command 
          parseToken(myArgv[i], myArgc, &(tempArgv[tempArgc]), &tempArgc);
       }
-      
-      //free(myArgv[i]);
    }
    myArgc = tempArgc;
-   //free(myArgv);
    myArgv = tempArgv;
    myArgv[myArgc] = '\0';
 
@@ -133,19 +124,27 @@ int parseAndExec(char* commandBuffer, int commandLength){
       char arg[6] = "./myls";
       strncpy(myArgv[0], arg, 6);
    }
+   if(strncmp(myArgv[0], "mycp", 4) == 0) {
+      char arg[6] = "./mycp";
+      strncpy(myArgv[0], arg, 6);
+   }
+   if(strncmp(myArgv[0], "mycat", 5) == 0) {
+      char arg[7] = "./mycat";
+      strncpy(myArgv[0], arg, 7);
+   }
 
    int redirects[2];
    redirects[0] = inf;
    redirects[1] = outf;
    int ret = processRunner(myArgv[0], myArgv, redirects);
    if(ret != 0)
-      printf("Error: Return status == %d\n", ret);   
+      printf("Error: Return status == %d\n", ret);
    if(piped == 1){
       redirects[0] = pinf;
       redirects[1] = poutf;
       ret = processRunner(pipedArgv[0], pipedArgv, redirects);
       if(ret != 0)
-         printf("Error: Return status == %d\n", ret);   
+         printf("Error: Return status == %d\n", ret);
    }
 
    return EXIT_SUCCESS;
@@ -170,7 +169,7 @@ int parseToken(char* srcToken, int srcCount, char** destToken, int* destCount){
             char* temp = (char*) calloc(argLength - 3, sizeof(char));
             strncat(temp, srcToken+2, argLength - 3);
             parseAndExec(temp, argLength-3);
-            exit(EXIT_SUCCESS);   
+            exit(EXIT_SUCCESS);
          } else{
             int stdin_copy = dup(0);
             dup2(pp[0], 0);
@@ -205,8 +204,6 @@ int processRunner(const char* command, char** arguments, int* redirects){
    if ((pid=fork())==0) {
       dup2(redirects[0], 0);
       dup2(redirects[1], 1);
-//      close(redirects[0]);
-//      close(redirects[1]);
       ret = execvp(command, arguments);
       if(ret != 0 )
          printf("Could not run command.\n");
@@ -220,5 +217,4 @@ int processRunner(const char* command, char** arguments, int* redirects){
    return ret;
 
 }
-
 
