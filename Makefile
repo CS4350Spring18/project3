@@ -9,6 +9,6 @@ exc:
 clean:
 	make -f MakeMYLS clean
 	make -f MakeMYSH clean
-	make -f MakeMYCAT clean
+	make -f MakeMYCP clean
 	make -f MakeMYCAT clean
 
