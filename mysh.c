@@ -14,6 +14,8 @@ int parseAndExec();
 
 int parseToken();
 
+void AWDTP();
+
 int processRunner();
 
 int main(int argc, char **argv){
@@ -21,6 +23,8 @@ int main(int argc, char **argv){
    if(argc > 1){
       printf("This command does not take arguments or options\n");
    }
+
+   AWDTP();
 
    char *commandBuffer;
    size_t commandLength = 0;
@@ -43,6 +47,43 @@ int main(int argc, char **argv){
       printf("mysh$> ");
    }
    return EXIT_FAILURE;
+}
+
+void AWDTP()
+{
+	// get working directory
+	char* cwd = malloc(sizeof(char) * 256);
+	getcwd(cwd, 256);
+
+	// read PATH environment variable
+	const char* pathVar = getenv("PATH");
+
+	// Check if PATH has current working directory in there.
+	if (NULL == strstr(pathVar, cwd))
+	{
+		// Allocate memory to hold modified PATH
+		int len = strlen(pathVar) + strlen(cwd) + 2;
+		char* newPath = malloc(len);
+		memset(newPath, 0, len);
+
+		// prepend cwd
+		strcat(newPath, cwd);
+
+		// copy original
+		strcat(newPath, ":");
+		strcat(newPath, pathVar);
+
+		setenv("PATH", newPath, 1);
+
+		// read updated value
+		const char* updated = getenv("PATH");
+
+		// Free memory
+		free(newPath);
+		newPath = NULL;
+	}
+
+	free(cwd);
 }
 
 
@@ -111,6 +152,8 @@ int parseAndExec(char* commandBuffer, int commandLength){
    myArgc = tempArgc;
    myArgv = tempArgv;
    myArgv[myArgc] = '\0';
+
+   pipedArgc[pipedArgv] = NULL;
 
    if(strncmp(myArgv[0], "mycd", 4) == 0){
       mycd(myArgv[1]);
@@ -204,11 +247,36 @@ int processRunner(const char* command, char** arguments, int* redirects){
    if ((pid=fork())==0) {
       dup2(redirects[0], 0);
       dup2(redirects[1], 1);
+
+	// Close fds after dup
+      if (redirects[1] != STDOUT_FILENO)
+      {
+            close(redirects[1]);
+      }
+
+      if (redirects[0] != STDIN_FILENO)
+      {
+            close(redirects[0]);
+      }
+
+
       ret = execvp(command, arguments);
       if(ret != 0 )
          printf("Could not run command.\n");
       exit(ret);
    } else if (pid>0) {
+
+	// Not doing this would not send EOF to children, and make commands wait forever.
+      if (redirects[1] != STDOUT_FILENO)
+      {
+            close(redirects[1]);
+      }
+
+      if (redirects[0] != STDIN_FILENO)
+      {
+            close(redirects[0]);
+      }
+
       wait(&status);
       ret = WEXITSTATUS(status);
    } else {
