@@ -9,7 +9,7 @@
 
 void DisplayStream(int fd)
 {
-	char buffer[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE];
 
     int bytesRead;
 	do
@@ -27,7 +27,6 @@ int main(int argc, char** argv)
 {
 	// Open the specified file and display in stdout if provided by the args
 	// Otherwise read the stdin for input.
-
 	if (argc <= 1)
 	{
 		// read stdin, but do not close

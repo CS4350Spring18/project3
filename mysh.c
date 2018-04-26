@@ -101,7 +101,7 @@ int parseAndExec(char* commandBuffer, int commandLength){
          }
          if(myArgv[i][0] == '>'){
             int temp;
-            if((temp = open(myArgv[i]+1, O_WRONLY|O_TRUNC|O_CREAT)))
+            if((temp = open(myArgv[i]+1, O_WRONLY|O_TRUNC|O_CREAT, 0666)))
                outf = temp;
          }
    

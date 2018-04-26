@@ -1,0 +1,17 @@
+project=mycat
+exe=mycat
+objects=mycat.o
+cc=gcc
+cflags=-Wall -std=c99 -g -pedantic
+
+all: $(objects)
+
+$(project): $(objects)
+	$(cc) -o $(project) $(objects)
+
+$(objects): %.o: %.c
+	$(cc) -c $(cflags) $< -o $@
+
+.PHONY: clean
+clean:
+	rm -f $(exe) $(objects) *.txt
