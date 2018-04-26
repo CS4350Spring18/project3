@@ -23,4 +23,4 @@ struct option longopts[] = {
 
 bool eof(int fd);
 
-void SearchDirectory(const char *name, const char *newName);
+void SearchDirectory(char *name, char *newName);

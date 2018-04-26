@@ -103,7 +103,7 @@ bool eof(int fd){
 /* Takes a current path and a new path
  * newName - New path that files and directories will be created
  * name - Old path that files are copied from  */
-void SearchDirectory(const char *name, const char *newName) {
+void SearchDirectory(char *name, char *newName) {
     char tempName[PATH_MAX];
     char newNameCopy[256] = "";
     strcat(newNameCopy, newName);
