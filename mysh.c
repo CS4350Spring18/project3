@@ -156,8 +156,6 @@ int parseAndExec(char* commandBuffer, int commandLength){
    myArgv = tempArgv;
    myArgv[myArgc] = '\0';
 
-   pipedArgc[pipedArgv] = NULL;
-
    if(strncmp(myArgv[0], "mycd", 4) == 0){
       mycd(myArgv[1]);
       return EXIT_SUCCESS;
@@ -170,13 +168,14 @@ int parseAndExec(char* commandBuffer, int commandLength){
    int redirects[2];
    redirects[0] = inf;
    redirects[1] = outf;
-   int ret = processRunner(prepCommand(myArgv[0]), myArgv, redirects);
+   int ret = processRunner(myArgv[0], myArgv, redirects);
    if(ret != 0)
       printf("Error: Return status == %d\n", ret);
    if(piped == 1){
+      pipedArgv[pipedArgc] = '\0';
       redirects[0] = pinf;
       redirects[1] = poutf;
-      ret = processRunner(prepCommand(pipedArgv[0]), pipedArgv, redirects);
+      ret = processRunner(pipedArgv[0], pipedArgv, redirects);
       if(ret != 0)
          printf("Error: Return status == %d\n", ret);
    }
