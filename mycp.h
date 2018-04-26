@@ -10,7 +10,7 @@
 #include <time.h>
 #include <pwd.h>
 #include <grp.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <string.h>
 
 bool eof(int fd);

@@ -10,12 +10,12 @@
 #include <time.h>
 #include <pwd.h>
 #include <grp.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <string.h>
 
 bool eof(int fd);
 
-void SearchDirectory(const char *name, const char *newName);
+void SearchDirectory(const char *name, char *newName);
 
 struct option longopts[] = {
    { 0, 0, 0, 0 },
@@ -66,7 +66,8 @@ int main(int argc, char** argv){
          SearchDirectory(oldName, newName);
       }
       else{
-         mkdir(argv[2], 0777);
+         // mkdir(argv[2], 0777);
+         printf("cp: %s is a directory (not copied).\n", argv[1]);
       }
    }
    else{
@@ -94,6 +95,17 @@ int main(int argc, char** argv){
          write(destf, buf1, sizeof(char));
       }
 
+      // give the permissions of the copy file to the destination file
+      char cwd[250];
+      getcwd(cwd,sizeof(cwd));
+      // if the file is already an absolute path
+      if( argv[2][0] != '/') {
+         getcwd(cwd,sizeof(cwd));
+         strcat(cwd,"/");
+         strcat(cwd,argv[2]);
+      }
+      chmod(cwd, buf.st_mode);
+
       close(srcf);
       close(destf);
    }
@@ -114,11 +126,13 @@ bool eof(int fd){
 /* Takes a current path and a new path
  * newName - New path that files and directories will be created
  * name - Old path that files are copied from  */
-void SearchDirectory(const char *name, const char *newName) {
-   printf("%s OG *name: \n", name);
-   printf("%s OG *newname: \n", newName);
-   printf("Start Search:\n");
+void SearchDirectory(const char *name, char *newName) {
+   // printf("%s OG *name: \n", name);
+   // printf("%s OG *newname: \n", newName);
+   // printf("Start Search:\n");
     char tempName[PATH_MAX];
+    char newNameCopy[256] = "";
+    strcat(newNameCopy, newName);
 
     realpath(name, tempName);
     DIR *dir = opendir(tempName);
@@ -133,6 +147,7 @@ void SearchDirectory(const char *name, const char *newName) {
 
         while((iter = readdir(dir)) != NULL) { //reads dir into iterator
             struct stat info;
+            strcpy(newName, newNameCopy);
             
             strcpy(EndPtr, iter->d_name);
 
@@ -148,43 +163,45 @@ void SearchDirectory(const char *name, const char *newName) {
             }
 
             if (S_ISDIR(info.st_mode)){ //if directory
-                  printf("%s Dir new dir \n", newName);
+                  // printf("%s Dir new dir \n", newName);
                   chdir (newName); //change to new directory
                   strcat(newName, Path); //copies the name of the new directory to the new path
                   strcat(name, Path);
 
-                  printf("%s path with newdir \n", newName);
+                  // printf("%s path with newdir \n", newName);
                   mkdir(newName, 0777); //makes the directory
                   chdir (name); //changes back to directory
 
-                  printf("%s Dir orig path \n", Path);
+                  // printf("%s Dir orig path \n", Path);
                   SearchDirectory(name, newName);   //iterates down dir
             } 
             else if(S_ISREG(info.st_mode)) { //if regular file
-               char tempPath[256];
-               char origPath[256];
+               char tempPath[256] = "";
+               char origPath[256] = "";
                strcat(origPath, name);
                strcat(origPath, Path);
                strcat(tempPath, newName);
                strcat(tempPath, Path); //copies file name ontop of new path
-               printf("%s write from location \n", origPath);
-               printf("%s new file location \n", tempPath);
+               // printf("%s write from location \n", origPath);
+               // printf("%s new file location \n", tempPath);
+
                char buf1[256];
                int srcf = open(origPath, O_RDONLY); //opens file in current dir
-               while(eof(srcf) != true){
-                  read(srcf, buf1, sizeof(char));
-               }
                chdir(newName);
                int destf = open(tempPath, O_WRONLY | O_CREAT | O_TRUNC); //writes in new dir
+               chmod(tempPath, info.st_mode);
+               chdir(name);
 
-               while(eof(srcf) != true){ //reads and writes
+               while(eof(srcf) != true){
+                  read(srcf, buf1, sizeof(char));
                   write(destf, buf1, sizeof(char));
                }
-               chdir(name);
 
                close(srcf);
                close(destf);
             }
         }
     }
+    chdir("..");
+    // printf("at the end of SearchDirectory\n");
 }
